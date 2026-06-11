@@ -1,0 +1,46 @@
+@startuml UseCaseDiagram
+title Fitness Calorie System - Use Case Diagram
+
+left to right direction
+actor User
+actor Guest
+
+rectangle "Fitness Calorie System" {
+    usecase UC1 as "View Landing Page"
+    usecase UC2 as "Register Account"
+    usecase UC3 as "Login to System"
+    usecase UC4 as "Logout from System"
+    usecase UC5 as "Access Fitness Form"
+    usecase UC6 as "Enter Exercise Parameters"
+    usecase UC7 as "Submit Fitness Data"
+    usecase UC8 as "View Calorie Prediction"
+    usecase UC9 as "View Food Recommendations"
+    usecase UC10 as "View AI-Powered Guidance"
+    usecase UC11 as "View Workout Plan"
+}
+
+User --> UC1
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+
+Guest --> UC1
+Guest --> UC2
+Guest --> UC3
+
+UC2 ..> UC3 : <<include>>
+UC5 ..> UC3 : <<extend>>
+UC7 ..> UC5 : <<include>>
+UC8 ..> UC7 : <<include>>
+UC9 ..> UC7 : <<include>>
+UC10 ..> UC7 : <<include>>
+UC11 ..> UC7 : <<include>>
+
+@enduml
+

@@ -1,0 +1,56 @@
+@startuml ComponentDiagram
+title Fitness Calorie System - Component Diagram
+
+package "Presentation Layer" {
+    component [Landing Page]
+    component [Login Page]
+    component [Signup Page]
+    component [Fitness Form]
+    component [Results Page]
+}
+
+package "Application Layer" {
+    component [Flask Application] as FlaskApp
+    component [Authentication Module] as Auth
+    component [Route Handlers] as Routes
+    component [AI Agent] as Agent
+}
+
+package "Service Layer" {
+    component [MCP Server] as MCPServer
+    component [Calorie Prediction Service] as CalorieService
+    component [Food Recommendation Service] as FoodService
+}
+
+package "Data Layer" {
+    database "User Database\n(SQLite)" as UserDB
+    database "Nutrition Database\n(CSV)" as NutritionDB
+    component [ANN Model\n(H5)] as Model
+}
+
+package "External Services" {
+    component [LiteLLM\nModel] as LLM
+}
+
+[Landing Page] --> FlaskApp
+[Login Page] --> FlaskApp
+[Signup Page] --> FlaskApp
+[Fitness Form] --> FlaskApp
+[Results Page] --> FlaskApp
+
+FlaskApp --> Auth
+FlaskApp --> Routes
+Routes --> Agent
+
+Agent --> LLM
+Agent --> MCPServer
+
+MCPServer --> CalorieService
+MCPServer --> FoodService
+
+CalorieService --> Model
+FoodService --> NutritionDB
+Auth --> UserDB
+
+@enduml
+

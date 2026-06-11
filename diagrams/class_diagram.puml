@@ -1,0 +1,87 @@
+@startuml ClassDiagram
+title Fitness Calorie System - Class Diagram
+
+class User {
+    -id: int
+    -username: string
+    -email: string
+    -password_hash: string
+    -created_at: timestamp
+}
+
+class FlaskApp {
+    -secret_key: string
+    -db_path: string
+    +landing(): Response
+    +login(): Response
+    +signup(): Response
+    +logout(): Response
+    +fitness_form(): Response
+    +predict(): Response
+}
+
+class DatabaseManager {
+    -connection: sqlite3.Connection
+    +init_db(): void
+    +get_db_connection(): Connection
+    +hash_password(password: string): string
+    +verify_password(password: string, hash: string): bool
+}
+
+class AuthenticationDecorator {
+    +login_required(func): Function
+}
+
+class ToolCallingAgent {
+    -model: LiteLLMModel
+    -tools: ToolCollection
+    +run(prompt: string): string
+}
+
+class LiteLLMModel {
+    -model_id: string
+    -num_ctx: int
+}
+
+class MCPServer {
+    -model: KerasModel
+    -food_df: DataFrame
+    +predict_calories(Gender, Age, Height, Weight, Duration, Heart_Rate, Body_Temp): dict
+    +recommend_foods(calories, weight_difference_percentage): dict
+    +final_answer(answer: string): string
+}
+
+class CaloriePredictor {
+    -model: KerasModel
+    +predict_calories_model(Gender, Age, Height, Weight, Duration, Heart_Rate, Body_Temp): float
+}
+
+class FoodOptimizer {
+    -food_df: DataFrame
+    +recommend_foods_internal(predicted_calories, weight_difference_percentage): List[Dict]
+    +calculate_new_weight(current_weight, total_calories): float
+}
+
+class ANNModel {
+    +predict(input_data: DataFrame): float[]
+}
+
+class NutritionDatabase {
+    -data: DataFrame
+    +load_food_df(): DataFrame
+}
+
+FlaskApp --> User : manages
+FlaskApp --> DatabaseManager : uses
+FlaskApp --> AuthenticationDecorator : uses
+FlaskApp --> ToolCallingAgent : uses
+ToolCallingAgent --> LiteLLMModel : uses
+ToolCallingAgent --> MCPServer : calls tools
+MCPServer --> CaloriePredictor : uses
+MCPServer --> FoodOptimizer : uses
+CaloriePredictor --> ANNModel : uses
+FoodOptimizer --> NutritionDatabase : uses
+DatabaseManager --> User : stores
+
+@enduml
+

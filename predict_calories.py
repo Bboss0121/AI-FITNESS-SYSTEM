@@ -6,7 +6,7 @@ import pandas as pd
 
 # Config - update paths if needed
 MODEL_PATH = os.getenv("CALORIE_MODEL_PATH",
-                       r"/home/deepak/Downloads/fitness calorie (3)(1)/fitness calorie (2)/fitness calorie/random_forest_regressor.joblib")
+                       r"C:\Users\bhava\Final_Code_Fitness\fitness calorie\fitness calorie\random_forest_regressor.joblib")
 
 # Load model once
 model = load(MODEL_PATH)

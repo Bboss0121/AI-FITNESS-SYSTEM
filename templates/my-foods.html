@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Database | Fitness AI Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .nav-links a {
+            color: #6366f1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .info-banner {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: #60a5fa;
+        }
+        .foods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .food-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .food-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .food-card.selected {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .food-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        .food-badges {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-vegetarian {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .badge-eggetarian {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+        .badge-dairy {
+            background: rgba(147, 197, 253, 0.2);
+            color: #93c5fd;
+        }
+        .badge-non-vegetarian {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .badge-category {
+            background: rgba(99, 102, 241, 0.2);
+            color: #6366f1;
+        }
+        .nutrition-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .nutrition-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .nutrition-label {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-bottom: 0.25rem;
+        }
+        .nutrition-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .select-btn {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .select-btn.add {
+            background: #6366f1;
+            color: white;
+        }
+        .select-btn.add:hover {
+            background: #4f46e5;
+        }
+        .select-btn.remove {
+            background: #ef4444;
+            color: white;
+        }
+        .select-btn.remove:hover {
+            background: #dc2626;
+        }
+        .selected-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #22c55e;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .search-box {
+            margin-bottom: 2rem;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="nav-links">
+            <a href="{{ url_for('fitness_form') }}">← Fitness Form</a>
+            <a href="{{ url_for('add_food_page') }}">➕ Add Food</a>
+            <a href="{{ url_for('profile') }}">👤 Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+
+        <div class="header">
+            <h1>🍽️ Food Database</h1>
+            <p class="subtitle">
+                Browse all foods and select your preferred foods. Selected foods will be used for recommendations.
+                {% if user_selected_count > 0 %}
+                <br><strong style="color: #22c55e;">{{ user_selected_count }} foods selected in your profile</strong>
+                {% endif %}
+            </p>
+        </div>
+
+        {% if message %}
+        <div class="info-banner">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        {% if user_selected_count > 0 %}
+        <div class="info-banner">
+            <strong>✅ {{ user_selected_count }} foods selected:</strong> Your food recommendations will use only your selected foods. 
+            If you haven't selected any foods, all foods in the database will be used.
+        </div>
+        {% else %}
+        <div class="info-banner">
+            <strong>💡 No foods selected yet:</strong> Click "Add to Profile" on foods you like. 
+            If no foods are selected, all foods in the database will be used for recommendations.
+        </div>
+        {% endif %}
+
+        {% if foods %}
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search foods by name..." onkeyup="filterFoods()">
+        </div>
+
+        <div class="foods-grid" id="foodsGrid">
+            {% for food in foods %}
+            <div class="food-card {% if food.is_selected %}selected{% endif %}" data-name="{{ food.name|lower }}">
+                {% if food.is_selected %}
+                <span class="selected-badge">✓ Selected</span>
+                {% endif %}
+                <div class="food-name">{{ food.name }}</div>
+                {% if food.dietary_type or food.category %}
+                <div class="food-badges">
+                    {% if food.dietary_type %}
+                    <span class="badge badge-{{ food.dietary_type|replace('-', '-') }}">
+                        {{ food.dietary_type|title }}
+                    </span>
+                    {% endif %}
+                    {% if food.category %}
+                    <span class="badge badge-category">
+                        {{ food.category|title }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <span class="nutrition-label">Calories</span>
+                        <span class="nutrition-value">{{ food.calories|round(1) if food.calories else 'N/A' }}</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-label">Protein</span>
+                        <span class="nutrition-value">{{ food.protein|round(1) if food.protein else 'N/A' }}g</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-label">Carbs</span>
+                        <span class="nutrition-value">{{ food.carbohydrate|round(1) if food.carbohydrate else 'N/A' }}g</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-label">Fat</span>
+                        <span class="nutrition-value">{{ food.total_fat|round(1) if food.total_fat else 'N/A' }}g</span>
+                    </div>
+                    {% if food.serving_size %}
+                    <div class="nutrition-item" style="grid-column: 1 / -1;">
+                        <span class="nutrition-label">Serving Size</span>
+                        <span class="nutrition-value">{{ food.serving_size }}g</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <button class="select-btn {% if food.is_selected %}remove{% else %}add{% endif %}" 
+                        onclick="toggleFood('{{ food.name }}', {{ 'true' if food.is_selected else 'false' }}, this)">
+                    {% if food.is_selected %}
+                    ✗ Remove from Profile
+                    {% else %}
+                    ✓ Add to Profile
+                    {% endif %}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No foods in database yet</h2>
+            <p style="margin-top: 1rem;">Start by adding foods!</p>
+            <a href="{{ url_for('add_food_page') }}" style="display: inline-block; margin-top: 1.5rem; padding: 0.75rem 1.5rem; background: #6366f1; color: white; text-decoration: none; border-radius: 8px;">
+                Add Your First Food
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function filterFoods() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const cards = document.querySelectorAll('.food-card');
+            
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                if (name.includes(filter)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        async function toggleFood(foodName, isSelected, buttonElement) {
+            const action = isSelected ? 'remove' : 'add';
+            
+            try {
+                const response = await fetch('/toggle-user-food', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        food_name: foodName,
+                        action: action
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update UI
+                    const card = buttonElement.closest('.food-card');
+                    if (action === 'add') {
+                        card.classList.add('selected');
+                        buttonElement.classList.remove('add');
+                        buttonElement.classList.add('remove');
+                        buttonElement.textContent = '✗ Remove from Profile';
+                        
+                        // Add selected badge if it doesn't exist
+                        if (!card.querySelector('.selected-badge')) {
+                            const badge = document.createElement('span');
+                            badge.className = 'selected-badge';
+                            badge.textContent = '✓ Selected';
+                            card.appendChild(badge);
+                        }
+                    } else {
+                        card.classList.remove('selected');
+                        buttonElement.classList.remove('remove');
+                        buttonElement.classList.add('add');
+                        buttonElement.textContent = '✓ Add to Profile';
+                        
+                        // Remove selected badge
+                        const badge = card.querySelector('.selected-badge');
+                        if (badge) {
+                            badge.remove();
+                        }
+                    }
+                    
+                    // Show success message
+                    showMessage(data.message, 'success');
+                    
+                    // Reload page after 1 second to update count
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(message, type) {
+            // Create or update message element
+            let messageDiv = document.getElementById('flashMessage');
+            if (!messageDiv) {
+                messageDiv = document.createElement('div');
+                messageDiv.id = 'flashMessage';
+                messageDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 8px; z-index: 1000; max-width: 300px;';
+                document.body.appendChild(messageDiv);
+            }
+            
+            messageDiv.textContent = message;
+            if (type === 'success') {
+                messageDiv.style.background = 'rgba(34, 197, 94, 0.9)';
+                messageDiv.style.color = 'white';
+            } else {
+                messageDiv.style.background = 'rgba(239, 68, 68, 0.9)';
+                messageDiv.style.color = 'white';
+            }
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

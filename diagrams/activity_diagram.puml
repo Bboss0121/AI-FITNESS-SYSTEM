@@ -1,0 +1,65 @@
+@startuml ActivityDiagram
+title Fitness Calorie System - Activity Diagram
+
+start
+:User accesses application;
+if (User logged in?) then (no)
+    :Display landing page;
+    if (User wants to register?) then (yes)
+        :Display signup form;
+        :User enters credentials;
+        :Validate input;
+        if (Valid?) then (yes)
+            :Hash password;
+            :Store in database;
+            :Redirect to login;
+        else (no)
+            :Display error;
+        endif
+    else (no)
+        :Display login form;
+        :User enters credentials;
+        :Verify credentials;
+        if (Valid?) then (yes)
+            :Create session;
+            :Redirect to fitness form;
+        else (no)
+            :Display error;
+        endif
+    endif
+endif
+
+:Display fitness form;
+:User enters exercise parameters;
+:User enters fitness goal;
+:Submit form;
+
+:Flask receives POST request;
+:Validate authentication;
+:Extract form data;
+:Create AI agent prompt;
+:Initialize ToolCallingAgent;
+
+:Agent calls predict_calories tool;
+:Load ANN model;
+:Prepare input data;
+:Predict calories;
+:Return predicted calories;
+
+:Agent calls recommend_foods tool;
+:Load nutrition database;
+:Set calorie constraints;
+:Run linear programming optimization;
+:Generate 3 food sets;
+:Return recommendations;
+
+:Agent formats response;
+:Generate natural language explanation;
+:Create diet plan recommendations;
+:Generate workout plan;
+
+:Display results to user;
+stop
+
+@enduml
+

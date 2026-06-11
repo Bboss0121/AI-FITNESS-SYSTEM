@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Food Manually | Fitness AI Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .classification-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        .badge-vegetarian {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-eggetarian {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        .badge-non-vegetarian {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .badge-category {
+            background: rgba(99, 102, 241, 0.2);
+            color: #6366f1;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        .classification-preview {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .classification-preview.active {
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .nav-links a {
+            color: #6366f1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .info-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="nav-links">
+            <a href="{{ url_for('fitness_form') }}">← Fitness Form</a>
+            <a href="{{ url_for('my_foods') }}">My Foods</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+
+        <div class="header">
+            <h1>🍽️ Add Food Manually</h1>
+            <p class="subtitle">Enter food details and nutrition values. AI will automatically classify dietary type and category.</p>
+        </div>
+
+        <form id="foodForm" class="fitness-form">
+            <div class="form-section">
+                <h2 class="section-title">
+                    <span class="icon">📝</span>
+                    Food Information
+                </h2>
+                
+                <div class="form-group full-width">
+                    <label for="food_name">Food Name *</label>
+                    <input type="text" name="food_name" id="food_name" placeholder="e.g., Grilled Chicken Breast" required class="form-input">
+                    <p class="info-text">AI will automatically classify this as vegetarian/eggetarian/non-vegetarian and by category</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="serving_size">Serving Size (grams) *</label>
+                    <input type="number" name="serving_size" id="serving_size" value="100" min="1" step="0.1" required class="form-input">
+                </div>
+            </div>
+
+            <div class="classification-preview" id="classificationPreview">
+                <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">AI Classification:</h3>
+                <div id="classificationBadges"></div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <span class="icon">🥗</span>
+                    Nutrition Values (per serving)
+                </h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="calories">Calories (kcal) *</label>
+                        <input type="number" name="calories" id="calories" placeholder="0" min="0" step="0.1" required class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="protein">Protein (g) *</label>
+                        <input type="number" name="protein" id="protein" placeholder="0" min="0" step="0.1" required class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carbohydrate">Carbohydrates (g)</label>
+                        <input type="number" name="carbohydrate" id="carbohydrate" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="total_fat">Total Fat (g)</label>
+                        <input type="number" name="total_fat" id="total_fat" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fiber">Fiber (g)</label>
+                        <input type="number" name="fiber" id="fiber" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sugars">Sugars (g)</label>
+                        <input type="number" name="sugars" id="sugars" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sodium">Sodium (mg)</label>
+                        <input type="number" name="sodium" id="sodium" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cholesterol">Cholesterol (mg)</label>
+                        <input type="number" name="cholesterol" id="cholesterol" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="calcium">Calcium (mg)</label>
+                        <input type="number" name="calcium" id="calcium" placeholder="0" min="0" step="0.1" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem;">Adding food to database...</p>
+            </div>
+
+            <div id="resultMessage" style="display: none; margin-top: 1rem;"></div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span class="btn-text">Add Food to Database</span>
+                <span class="btn-icon">💾</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const foodNameInput = document.getElementById('food_name');
+        const classificationPreview = document.getElementById('classificationPreview');
+        const classificationBadges = document.getElementById('classificationBadges');
+        const form = document.getElementById('foodForm');
+        const loading = document.getElementById('loading');
+        const resultMessage = document.getElementById('resultMessage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        let classificationTimeout;
+
+        // Auto-classify on food name change (debounced)
+        foodNameInput.addEventListener('input', () => {
+            clearTimeout(classificationTimeout);
+            const foodName = foodNameInput.value.trim();
+            
+            if (foodName.length > 2) {
+                classificationTimeout = setTimeout(() => {
+                    classifyFood(foodName);
+                }, 1000); // Wait 1 second after user stops typing
+            } else {
+                classificationPreview.classList.remove('active');
+            }
+        });
+
+        async function classifyFood(foodName) {
+            // This would call a classification endpoint if we had one
+            // For now, we'll just show a placeholder
+            // The actual classification happens on the server when submitting
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            if (!formData.get('food_name') || !formData.get('calories') || !formData.get('protein')) {
+                showMessage('Please fill in all required fields (Food Name, Calories, Protein)', 'error');
+                return;
+            }
+
+            // Show loading
+            loading.classList.add('active');
+            submitBtn.disabled = true;
+            resultMessage.style.display = 'none';
+
+            try {
+                const response = await fetch('/process-food', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show classifications
+                    if (data.classifications) {
+                        showClassifications(data.classifications);
+                    }
+                    
+                    showMessage(
+                        `✅ ${data.message}\n\n` +
+                        `Food: ${data.food_name}\n` +
+                        `Calories: ${data.nutrition_data.calories}\n` +
+                        `Protein: ${data.nutrition_data.protein}g`,
+                        'success'
+                    );
+                    
+                    // Reset form after 2 seconds
+                    setTimeout(() => {
+                        form.reset();
+                        classificationPreview.classList.remove('active');
+                    }, 2000);
+                } else {
+                    showMessage(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showClassifications(classifications) {
+            const badges = [];
+            
+            // Dietary type badge
+            const dietaryType = classifications.dietary_type || 'non-vegetarian';
+            const dietaryClass = `badge-${dietaryType.replace('-', '-')}`;
+            badges.push(`<span class="classification-badge ${dietaryClass}">${dietaryType.charAt(0).toUpperCase() + dietaryType.slice(1)}</span>`);
+            
+            // Category badge
+            const category = classifications.category || 'main course';
+            badges.push(`<span class="classification-badge badge-category">${category.charAt(0).toUpperCase() + category.slice(1)}</span>`);
+            
+            classificationBadges.innerHTML = badges.join('');
+            classificationPreview.classList.add('active');
+        }
+
+        function showMessage(message, type) {
+            resultMessage.textContent = message;
+            resultMessage.style.display = 'block';
+            resultMessage.style.padding = '1rem';
+            resultMessage.style.borderRadius = '8px';
+            resultMessage.style.whiteSpace = 'pre-line';
+            
+            if (type === 'success') {
+                resultMessage.style.background = 'rgba(34, 197, 94, 0.1)';
+                resultMessage.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+                resultMessage.style.color = '#16a34a';
+            } else {
+                resultMessage.style.background = 'rgba(239, 68, 68, 0.1)';
+                resultMessage.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                resultMessage.style.color = '#dc2626';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -4,17 +4,21 @@ from typing import Optional, List, Dict, Any
 
 import pandas as pd
 from joblib import load
+from tensorflow.keras.models import load_model
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpStatus
 from mcp.server.fastmcp import FastMCP
+from pulp import PULP_CBC_CMD
 
 # ===== Configuration (change paths or set env vars) =====
 MODEL_PATH = os.getenv(
     "CALORIE_MODEL_PATH",
-    r"/home/deepak/Downloads/fitness calorie (3)(1)/fitness calorie (2)/fitness calorie/random_forest_regressor.joblib",
+   
+    r"C:\Users\bhava\Final_Code_Fitness\fitness calorie\fitness calorie\ann_model.h5",
 )
+# Get CSV path - always use main database
 CSV_PATH = os.getenv(
     "NUTRITION_CSV_PATH",
-    r"/home/deepak/Downloads/fitness calorie (3)(1)/fitness calorie (2)/fitness calorie/nutrition_updated.csv",
+    r"C:\Users\bhava\Final_Code_Fitness\fitness calorie\fitness calorie\nutrition_updated.csv",
 )
 
 # ===== Init =====
@@ -22,31 +26,97 @@ mcp = FastMCP("fitnesschatbot")
 mcp.memory = {"collection_fields": {}}
 
 # Load model once (lazy load pattern in case file path missing)
-_model = None
+# _model = None
 
+
+# def _load_model():
+#     global _model
+#     if _model is None:
+#         _model = load(MODEL_PATH)
+#     return _model
+
+_model = None
 
 def _load_model():
     global _model
     if _model is None:
-        _model = load(MODEL_PATH)
+        _model = load_model(MODEL_PATH,compile=False)
     return _model
 
 
 # Load food dataframe once
 _food_df: Optional[pd.DataFrame] = None
+_food_df_timestamp: Optional[float] = None
 
 
-def _load_food_df():
-    global _food_df
-    if _food_df is None:
-        df = pd.read_csv(CSV_PATH)
-        df["calories"] = pd.to_numeric(df.get("calories", 0), errors="coerce").fillna(0)
-        df["protein"] = pd.to_numeric(df.get("protein", 0), errors="coerce").fillna(0)
-        df = df[df["calories"] > 0].reset_index(drop=True)
-        # Ensure 'name' exists
-        if "name" not in df.columns:
-            df["name"] = df.index.map(lambda i: f"item_{i}")
-        _food_df = df
+def _load_food_df(force_reload: bool = False):
+    """Load food dataframe with optional cache invalidation, using user's selected foods if available"""
+    global _food_df, _food_df_timestamp
+    import time
+    import json
+
+    # Check if file was modified
+    if os.path.exists(CSV_PATH):
+        current_timestamp = os.path.getmtime(CSV_PATH)
+        if force_reload or _food_df is None or _food_df_timestamp != current_timestamp:
+            df = pd.read_csv(CSV_PATH, low_memory=False)
+            df["calories"] = pd.to_numeric(df.get("calories", 0), errors="coerce").fillna(0)
+            df["protein"] = pd.to_numeric(df.get("protein", 0), errors="coerce").fillna(0)
+            df = df[df["calories"] > 0].reset_index(drop=True)
+            # Ensure 'name' exists
+            if "name" not in df.columns:
+                df["name"] = df.index.map(lambda i: f"item_{i}")
+            
+            # Add dietary_type and category columns if they don't exist (for backward compatibility)
+            if "dietary_type" not in df.columns:
+                df["dietary_type"] = None
+            if "category" not in df.columns:
+                df["category"] = None
+            
+            # Filter by user's selected foods if available
+            # Read from file (more reliable for separate processes)
+            user_foods = None
+            user_foods_file = os.getenv("USER_FOODS_FILE")
+            
+            # Also try default location
+            if not user_foods_file:
+                default_file = os.path.join(os.path.dirname(__file__), "user_data", "current_user_foods.json")
+                if os.path.exists(default_file):
+                    user_foods_file = default_file
+            
+            if user_foods_file and os.path.exists(user_foods_file):
+                try:
+                    with open(user_foods_file, 'r') as f:
+                        user_data = json.load(f)
+                        user_foods = user_data.get('foods', [])
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Could not read user foods file: {e}")
+            
+            # Fallback to environment variable
+            if not user_foods:
+                user_foods_json = os.getenv("USER_FOODS")
+                if user_foods_json:
+                    try:
+                        user_foods = json.loads(user_foods_json)
+                    except Exception as e:
+                        pass
+            
+            # Apply filter if user foods are available
+            if user_foods and len(user_foods) > 0:
+                # Only filter if user has selected foods
+                original_count = len(df)
+                df = df[df['name'].isin(user_foods)]
+                import logging
+                logging.info(f"Filtered to {len(df)} foods from user's selected {len(user_foods)} foods (from {original_count} total)")
+            
+            _food_df = df
+            _food_df_timestamp = current_timestamp
+    else:
+        # Create empty dataframe if file doesn't exist
+        _food_df = pd.DataFrame(columns=["name", "calories", "protein"])
+        _food_df_timestamp = time.time()
+    
     return _food_df
 
 
@@ -65,8 +135,8 @@ def predict_calories_model(
         [[Gender, Age, Height, Weight, Duration, Heart_Rate, Body_Temp]],
         columns=["Gender", "Age", "Height", "Weight", "Duration", "Heart_Rate", "Body_Temp"],
     )
-    pred = mdl.predict(input_df)
-    return float(pred[0])
+    pred = mdl.predict(input_df, verbose=0)
+    return float(pred[0][0])
 
 
 def calculate_new_weight(current_weight: float, total_calories: float) -> float:
@@ -81,7 +151,7 @@ def recommend_foods_internal(
     items_per_set: int = 3,
     max_rows: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
-    df = _load_food_df().copy()
+    df = _load_food_df(force_reload=False).copy()
     if max_rows is not None:
         df = df.head(int(max_rows)).copy()
 
@@ -116,7 +186,7 @@ def recommend_foods_internal(
             if 0 <= idx < n:
                 problem += choices[idx] == 0
 
-        status = problem.solve()
+        status = problem.solve(PULP_CBC_CMD(msg=False))
         status_name = LpStatus.get(problem.status, None)
         if status_name != "Optimal":
             break

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Fitness AI Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .nav-links a {
+            color: #6366f1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .profile-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            font-weight: 700;
+        }
+        .profile-info h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .profile-info p {
+            margin: 0.5rem 0 0 0;
+            color: #9ca3af;
+        }
+        .preferred-type-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+        .badge-vegetarian {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 2px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-eggetarian {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+        }
+        .badge-dairy {
+            background: rgba(147, 197, 253, 0.2);
+            color: #93c5fd;
+            border: 2px solid rgba(147, 197, 253, 0.3);
+        }
+        .badge-non-vegetarian {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+        .foods-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .food-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .food-item-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .food-item-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+        }
+        .distribution-chart {
+            margin-top: 1rem;
+        }
+        .distribution-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .distribution-bar {
+            flex: 1;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .distribution-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.3s ease;
+        }
+        .fill-vegetarian {
+            background: #22c55e;
+        }
+        .fill-eggetarian {
+            background: #fbbf24;
+        }
+        .fill-dairy {
+            background: #93c5fd;
+        }
+        .fill-non-vegetarian {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="nav-links">
+            <a href="{{ url_for('fitness_form') }}">← Fitness Form</a>
+            <a href="{{ url_for('my_foods') }}">🍽️ My Foods</a>
+            <a href="{{ url_for('add_food_page') }}">➕ Add Food</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ username[0].upper() if username else 'U' }}
+                </div>
+                <div class="profile-info">
+                    <h2>{{ username }}</h2>
+                    <p>Fitness Profile</p>
+                </div>
+            </div>
+
+            <form method="POST" style="margin-top: 2rem;">
+                <div class="form-group full-width">
+                    <label for="preferred_food_type" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">
+                        Preferred Food Type
+                    </label>
+                    <select name="preferred_food_type" id="preferred_food_type" class="form-input" style="max-width: 400px;">
+                        <option value="">Auto-detect from selected foods</option>
+                        <option value="vegetarian" {% if preferred_food_type == 'vegetarian' %}selected{% endif %}>Vegetarian</option>
+                        <option value="eggetarian" {% if preferred_food_type == 'eggetarian' %}selected{% endif %}>Eggetarian</option>
+                        <option value="dairy" {% if preferred_food_type == 'dairy' %}selected{% endif %}>Dairy</option>
+                        <option value="non-vegetarian" {% if preferred_food_type == 'non-vegetarian' %}selected{% endif %}>Non-Vegetarian</option>
+                    </select>
+                    <p class="info-text" style="margin-top: 0.5rem; color: #6b7280;">
+                        {% if preferred_food_type %}
+                        Current: <strong>{{ preferred_food_type|title }}</strong>
+                        {% else %}
+                        No preference set. Will be auto-detected from your selected foods.
+                        {% endif %}
+                    </p>
+                    <button type="submit" class="submit-btn" style="margin-top: 1rem; max-width: 200px;">
+                        <span class="btn-text">Update Preference</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <h2 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>📊</span>
+                Profile Statistics
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ user_foods|length if user_foods else 0 }}</div>
+                    <div class="stat-label">Selected Foods</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ dietary_type_distribution|length if dietary_type_distribution else 0 }}</div>
+                    <div class="stat-label">Food Types</div>
+                </div>
+            </div>
+
+            {% if dietary_type_distribution %}
+            <div class="distribution-chart" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Dietary Type Distribution</h3>
+                {% for dietary_type, count in dietary_type_distribution.items() %}
+                <div class="distribution-item">
+                    <span style="min-width: 120px; text-transform: capitalize; color: #fff;">{{ dietary_type }}</span>
+                    <div class="distribution-bar">
+                        <div class="distribution-fill fill-{{ dietary_type|replace('-', '-') }}" 
+                             style="width: {{ (count / user_foods|length * 100) if user_foods|length > 0 else 0 }}%"></div>
+                    </div>
+                    <span style="min-width: 40px; text-align: right; color: #9ca3af;">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="profile-section">
+            <h2 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🍽️</span>
+                My Selected Foods ({{ user_foods|length if user_foods else 0 }})
+            </h2>
+            
+            {% if user_foods %}
+            <div class="foods-list">
+                {% for food in user_foods %}
+                <div class="food-item">
+                    <div>
+                        <div class="food-item-name">{{ food.name }}</div>
+                        <div style="font-size: 0.875rem; color: #9ca3af; margin-top: 0.25rem;">
+                            {{ food.calories|round(1) if food.calories else 'N/A' }} cal • 
+                            {{ food.protein|round(1) if food.protein else 'N/A' }}g protein
+                        </div>
+                    </div>
+                    {% if food.dietary_type %}
+                    <span class="food-item-badge badge-{{ food.dietary_type|replace('-', '-') }}">
+                        {{ food.dietary_type|title }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No foods selected yet.</p>
+                <a href="{{ url_for('my_foods') }}" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: #6366f1; color: white; text-decoration: none; border-radius: 8px;">
+                    Browse & Select Foods
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,16 +1,233 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Fitness Result</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Fitness Plan | Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Background Orbs from your screenshot style */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; right: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: #ec4899; bottom: -50px; left: -50px; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Navigation Buttons */
+        .nav-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Section Boxes/Cards */
+        .plan-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .plan-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .plan-card h2 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .card-content {
+            white-space: pre-line; /* Preserves AI line breaks */
+            color: var(--text-main);
+        }
+
+        /* Formats list items from Markdown */
+        .card-content ul {
+            padding-left: 1.5rem;
+        }
+
+        .card-content strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .action-footer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 3rem;
+            padding-bottom: 4rem;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.8rem; }
+            .plan-card { padding: 1.5rem; }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1>📊 Your Personalized Fitness Plan</h1>
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+    </div>
 
-    <pre class="output">{{ result }}</pre>
+    <div class="container">
+        <div class="nav-header">
+            <a href="{{ url_for('fitness_form') }}" class="nav-btn">← Back to Form</a>
+            <a href="{{ url_for('my_foods') }}" class="nav-btn">🍽️ My Foods</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn">Logout</a>
+        </div>
 
-    <a href="/" class="back">← Try Another</a>
-</div>
+        <div class="header">
+            <h1>Fitness Strategy</h1>
+            <p style="color: var(--text-muted)">Your customized plan generated by RiderGuard AI</p>
+        </div>
+
+        <div id="plan-boxes"></div>
+
+        <div class="action-footer">
+            <button onclick="window.print()" class="nav-btn" style="background: white; color: black; border: none;">
+                🖨️ Print Plan
+            </button>
+            <a href="{{ url_for('fitness_form') }}" class="nav-btn" style="background: var(--primary); color: white;">
+                Create New Plan
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 1. Get the raw result string from Flask
+        const rawText = '{{ result|tojson }}';
+
+        // 2. Function to parse Markdown headers (##) into separate boxes
+        function generateBoxes(text) {
+    const container = document.getElementById('plan-boxes');
+    
+    // 1. Clean the raw text: remove leading/trailing whitespace and weird characters like "
+    const cleanText = text.trim().replace(/^["'\s]+|["'\s]+$/g, "");
+
+    // 2. Split by "##"
+    const sections = cleanText.split(/##\s+/);
+
+    sections.forEach((section) => {
+        // 3. ONLY create a box if there is actual content in the section
+        const trimmedSection = section.trim();
+        if (trimmedSection.length > 0) {
+            const lines = trimmedSection.split('\n');
+            const title = lines[0];
+            const body = lines.slice(1).join('\n');
+
+            const card = document.createElement('div');
+            card.className = 'plan-card';
+
+            card.innerHTML = `
+                <h2>
+                    <span style="font-size: 1.1rem; opacity: 0.8;">✦</span> 
+                    ${title}
+                </h2>
+                <div class="card-content">${formatText(body)}</div>
+            `;
+
+            container.appendChild(card);
+        }
+    });
+}
+
+        // Simple helper to convert some basic markdown-style text to HTML
+        function formatText(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')             // Italics
+                .trim();
+        }
+
+        // Initialize the layout
+        generateBoxes(rawText);
+    </script>
 </body>
 </html>

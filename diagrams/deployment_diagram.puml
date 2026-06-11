@@ -1,0 +1,39 @@
+@startuml DeploymentDiagram
+title Fitness Calorie System - Deployment Diagram
+
+node "Client Browser" {
+    component [Web Browser] as Browser
+}
+
+node "Web Server" {
+    component [Flask Application] as FlaskApp
+    component [Python Runtime] as Python
+    database "SQLite Database" as UserDB
+}
+
+node "MCP Server Process" {
+    component [MCP Server] as MCPServer
+    component [Calorie Predictor] as Predictor
+    component [Food Optimizer] as Optimizer
+    database "Nutrition CSV" as NutritionDB
+    artifact "ANN Model (H5)" as Model
+}
+
+node "AI Service" {
+    component [LiteLLM Service] as LLM
+    component [Ollama/GPT Model] as AIModel
+}
+
+Browser --> FlaskApp : HTTP/HTTPS
+FlaskApp --> Python : Runs on
+FlaskApp --> UserDB : Reads/Writes
+FlaskApp --> MCPServer : MCP Protocol\n(Stdio)
+FlaskApp --> LLM : API Calls
+MCPServer --> Predictor : Uses
+MCPServer --> Optimizer : Uses
+Predictor --> Model : Loads
+Optimizer --> NutritionDB : Reads
+LLM --> AIModel : Uses
+
+@enduml
+

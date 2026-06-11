@@ -1,0 +1,48 @@
+@startuml SequenceDiagram
+title Fitness Calorie System - Sequence Diagram
+
+actor User
+participant Browser
+participant FlaskApp
+participant AuthDecorator
+participant ToolCallingAgent
+participant MCPServer
+participant CaloriePredictor
+participant FoodOptimizer
+database UserDB
+database NutritionDB
+
+User -> Browser: Access /fitness-form
+Browser -> FlaskApp: GET /fitness-form
+FlaskApp -> AuthDecorator: Check authentication
+AuthDecorator -> FlaskApp: User authenticated
+FlaskApp -> Browser: Render fitness-form.html
+Browser -> User: Display form
+
+User -> Browser: Submit form with exercise data
+Browser -> FlaskApp: POST /predict
+FlaskApp -> AuthDecorator: Check authentication
+AuthDecorator -> FlaskApp: User authenticated
+FlaskApp -> ToolCallingAgent: Create agent with prompt
+ToolCallingAgent -> MCPServer: Call predict_calories()
+MCPServer -> CaloriePredictor: predict_calories_model()
+CaloriePredictor -> ANNModel: Load and predict
+ANNModel -> CaloriePredictor: Return predicted calories
+CaloriePredictor -> MCPServer: Return calories
+MCPServer -> ToolCallingAgent: Return {"predicted_calories": value}
+
+ToolCallingAgent -> MCPServer: Call recommend_foods()
+MCPServer -> FoodOptimizer: recommend_foods_internal()
+FoodOptimizer -> NutritionDB: Load food database
+NutritionDB -> FoodOptimizer: Return food data
+FoodOptimizer -> FoodOptimizer: Run linear programming optimization
+FoodOptimizer -> MCPServer: Return recommendation sets
+MCPServer -> ToolCallingAgent: Return {"recommendation_sets": [...]}
+
+ToolCallingAgent -> ToolCallingAgent: Format response with AI
+ToolCallingAgent -> FlaskApp: Return formatted result
+FlaskApp -> Browser: Render result.html
+Browser -> User: Display personalized plan
+
+@enduml
+

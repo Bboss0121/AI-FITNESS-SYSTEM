@@ -12,13 +12,12 @@ from pulp import PULP_CBC_CMD
 # ===== Configuration (change paths or set env vars) =====
 MODEL_PATH = os.getenv(
     "CALORIE_MODEL_PATH",
-   
-    r"C:\Users\bhava\Final_Code_Fitness\fitness calorie\fitness calorie\ann_model.h5",
+    os.path.join(os.path.dirname(__file__), "ann_model.h5"),
 )
 # Get CSV path - always use main database
 CSV_PATH = os.getenv(
     "NUTRITION_CSV_PATH",
-    r"C:\Users\bhava\Final_Code_Fitness\fitness calorie\fitness calorie\nutrition_updated.csv",
+    os.path.join(os.path.dirname(__file__), "nutrition_updated.csv"),
 )
 
 # ===== Init =====

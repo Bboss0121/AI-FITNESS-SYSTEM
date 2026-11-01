@@ -764,8 +764,6 @@ stop
 1. **Clone or download project files**
 2. **Install Python dependencies**:
    ```bash
-   pip install -r requirements.txt
-   # or
    uv sync
    ```
 3. **Set environment variables** (optional):
@@ -781,7 +779,7 @@ stop
    - `nutrition_updated.csv` in specified path
 5. **Run application**:
    ```bash
-   python agent.py
+   uv run python agent.py
    ```
 6. **Access application**: Open browser to `http://localhost:5000`
 
@@ -1179,4 +1177,3 @@ The project demonstrates the practical application of advanced technologies in s
 **Document Version**: 1.0  
 **Last Updated**: 2024  
 **Author**: Fitness Calorie System Development Team
-

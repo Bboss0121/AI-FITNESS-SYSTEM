@@ -3,6 +3,7 @@ import os
 import sqlite3
 import hashlib
 import secrets
+import sys
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from smolagents import ToolCallingAgent, ToolCollection, LiteLLMModel
@@ -228,7 +229,7 @@ def check_and_classify_foods():
         
         if needs_classification:
             print("\n" + "="*70)
-            print("⚠️  WARNING: Foods need classification!")
+            print("WARNING: Foods need classification!")
             print("="*70)
             print(f"CSV file: {csv_path}")
             print(f"Total foods: {total_foods}")
@@ -240,9 +241,9 @@ def check_and_classify_foods():
             print("  - Category: main course, curry, salad, drink, breads/fastfood")
             print("="*70 + "\n")
         else:
-            print(f"✅ All {total_foods} foods are classified and ready!")
+            print(f"All {total_foods} foods are classified and ready!")
     except Exception as e:
-        print(f"⚠️  Warning: Could not check food classification status: {e}")
+        print(f"Warning: Could not check food classification status: {e}")
         import traceback
         traceback.print_exc()
 
@@ -270,8 +271,8 @@ model = LiteLLMModel(
 )
 
 server_parameters = StdioServerParameters(
-    command=os.getenv("PY_CMD", "python"),
-    args=[os.getenv("SERVER_FILE", "server.py")],
+    command=os.getenv("PY_CMD", sys.executable),
+    args=[os.getenv("SERVER_FILE", os.path.join(os.path.dirname(__file__), "server.py"))],
     env={
         **os.environ,  # Pass through existing environment
     }
